@@ -798,10 +798,11 @@ def workflow_config(
         "build-deps-ci": True if requested_slugs else False,
     }
 
+    # Cloudian only runs on linux for now
     platforms: list[Literal["linux", "macos", "windows"]] = [
         "linux",
-        "macos",
-        "windows",
+        # "macos",
+        # "windows",
     ]
 
     if skip_pkg_download_tests:
