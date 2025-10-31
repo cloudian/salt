@@ -98,7 +98,7 @@ jobs:
       - name: Download Packages
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.package-name }}-${{ inputs.salt-version }}-${{ matrix.arch }}-${{ matrix.pkg_type }}
+          name: cloudian-${{ inputs.package-name }}-${{ inputs.salt-version }}-${{ matrix.arch }}-${{ matrix.pkg_type }}
           path: artifacts/pkg/
 
       - name: Download Onedir Tarball as an Artifact
