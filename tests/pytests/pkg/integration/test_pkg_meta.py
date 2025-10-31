@@ -81,6 +81,7 @@ def test_provides(
         f"manual: salt = {artifact_version}-{pkg_release}",
         f"manual: salt({provides_arch}) = {artifact_version}-{pkg_release}",
         f"manual: cloudian-salt = {artifact_version}-{pkg_release}",
+        f"manual: cloudian-salt({provides_arch}) = {artifact_version}-{pkg_release}",
     ]
     proc = subprocess.run(
         ["rpm", "-q", "-v", "-provides", package], capture_output=True, check=True
