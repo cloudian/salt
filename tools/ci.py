@@ -813,6 +813,11 @@ def workflow_config(
         platform: _build_matrix(platform, config["linux_arm_runner"])
         for platform in platforms
     }
+
+    # Ensure Windows and macOS are not in the build matrix for Cloudian
+    config["build-matrix"]["windows"] = []
+    config["build-matrix"]["macos"] = []
+
     ctx.info(f"{'==== build matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(config['build-matrix'])}")
     ctx.info(f"{'==== end build matrix ====':^80s}")
@@ -856,6 +861,10 @@ def workflow_config(
     ctx.info(f"str_releases {str_releases}")
 
     pkg_test_matrix: dict[str, list] = {_: [] for _ in platforms}
+
+    # Ensure Windows and macOS are not in the pkg test matrix for Cloudian
+    pkg_test_matrix["windows"] = []
+    pkg_test_matrix["macos"] = []
 
     if not config["linux_arm_runner"]:
         # Filter out linux arm tests because we are on a private repository and
@@ -919,8 +928,6 @@ def workflow_config(
     test_matrix: dict[str, list] = {
         "linux-x86_64": [],
         "linux-arm64": [],
-        "macos": [],
-        "windows": [],
     }
     if not skip_tests:
         for platform in platforms:
@@ -1018,6 +1025,10 @@ def workflow_config(
             ctx.warn(
                 f"Number of jobs in {platform} test matrix exceeds 256 ({len(test_matrix[key])}), jobs may not run."
             )
+
+    # Final cleanup: ensure Windows and macOS are not in any matrix
+    test_matrix["windows"] = []
+    test_matrix["macos"] = []
 
     ctx.info(f"{'==== test matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(test_matrix)}")
