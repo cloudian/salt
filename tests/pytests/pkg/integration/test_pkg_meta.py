@@ -39,6 +39,7 @@ def required_version():
 def artifact_version(install_salt):
     return install_salt.artifact_version
 
+
 @pytest.fixture
 def pkg_release():
     return "1"
@@ -58,6 +59,7 @@ def test_provides(
     provides_arch,
     rpm_version,
     required_version,
+    pkg_release,
 ):
     if install_salt.distro_id not in (
         "almalinux",
@@ -78,6 +80,7 @@ def test_provides(
         f"manual: salt = {artifact_version}",
         f"manual: salt = {artifact_version}-{pkg_release}",
         f"manual: salt({provides_arch}) = {artifact_version}-{pkg_release}",
+        f"manual: cloudian-salt = {artifact_version}-{pkg_release}",
     ]
     proc = subprocess.run(
         ["rpm", "-q", "-v", "-provides", package], capture_output=True, check=True
@@ -92,7 +95,7 @@ def test_provides(
 
 @pytest.mark.skipif(not salt.utils.path.which("rpm"), reason="rpm is not installed")
 def test_requires(
-    install_salt, package, artifact_version, rpm_version, required_version
+    install_salt, package, artifact_version, rpm_version, required_version, pkg_release
 ):
     if install_salt.distro_id not in (
         "almalinux",
@@ -115,7 +118,7 @@ def test_requires(
         "manual: /usr/sbin/groupadd",
         "manual: /usr/sbin/useradd",
         "manual: /usr/sbin/usermod",
-        f"config: config(salt) = {artifact_version}-{pkg_release}",
+        f"config: config(cloudian-salt) = {artifact_version}-{pkg_release}",
         "manual: dmidecode",
         "manual: openssl",
         "manual: pciutils",
