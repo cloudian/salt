@@ -66,7 +66,7 @@ jobs:
 
   build-deb-packages:
     name: DEB
-    if: ${{ toJSON(fromJSON(inputs.matrix)['linux']) != '[]' }}
+    if: ${{ false }}
     runs-on:
       - ${{ matrix.arch == 'x86_64' && 'ubuntu-24.04' || inputs.linux_arm_runner }}
     strategy:
