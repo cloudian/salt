@@ -39,10 +39,14 @@ def required_version():
 def artifact_version(install_salt):
     return install_salt.artifact_version
 
+@pytest.fixture
+def pkg_release():
+    return "1"
+
 
 @pytest.fixture
-def package(artifact_version, pkg_arch):
-    name = f"cloudian-salt-{artifact_version}-0.{pkg_arch}.rpm"
+def package(artifact_version, pkg_arch, pkg_release):
+    name = f"cloudian-salt-{artifact_version}-{pkg_release}.{pkg_arch}.rpm"
     return ARTIFACTS_DIR / name
 
 
@@ -70,10 +74,10 @@ def test_provides(
 
     assert package.exists()
     valid_provides = [
-        f"config: config(salt) = {artifact_version}-0",
+        f"config: config(salt) = {artifact_version}-{pkg_release}",
         f"manual: salt = {artifact_version}",
-        f"manual: salt = {artifact_version}-0",
-        f"manual: salt({provides_arch}) = {artifact_version}-0",
+        f"manual: salt = {artifact_version}-{pkg_release}",
+        f"manual: salt({provides_arch}) = {artifact_version}-{pkg_release}",
     ]
     proc = subprocess.run(
         ["rpm", "-q", "-v", "-provides", package], capture_output=True, check=True
@@ -111,7 +115,7 @@ def test_requires(
         "manual: /usr/sbin/groupadd",
         "manual: /usr/sbin/useradd",
         "manual: /usr/sbin/usermod",
-        f"config: config(salt) = {artifact_version}-0",
+        f"config: config(salt) = {artifact_version}-{pkg_release}",
         "manual: dmidecode",
         "manual: openssl",
         "manual: pciutils",
