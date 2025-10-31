@@ -42,7 +42,7 @@ def artifact_version(install_salt):
 
 @pytest.fixture
 def package(artifact_version, pkg_arch):
-    name = f"salt-{artifact_version}-0.{pkg_arch}.rpm"
+    name = f"cloudian-salt-{artifact_version}-0.{pkg_arch}.rpm"
     return ARTIFACTS_DIR / name
 
 
