@@ -128,7 +128,7 @@ def test_requires(
     package_version,
     rpm_version,
     required_version,
-    pkg_release
+    pkg_release,
 ):
     if install_salt.distro_id not in (
         "almalinux",
