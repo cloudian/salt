@@ -47,8 +47,19 @@ def pkg_release():
 
 @pytest.fixture
 def package(artifact_version, pkg_arch, pkg_release):
+    # First try the expected name with artifact_version
     name = f"cloudian-salt-{artifact_version}-{pkg_release}.{pkg_arch}.rpm"
-    return ARTIFACTS_DIR / name
+    package_path = ARTIFACTS_DIR / name
+
+    # If that doesn't exist, try to find a package with a git hash
+    if not package_path.exists():
+        # Look for packages matching the pattern with git hash
+        pattern = f"cloudian-salt-{artifact_version}*-{pkg_release}.{pkg_arch}.rpm"
+        matches = list(ARTIFACTS_DIR.glob(pattern))
+        if matches:
+            package_path = matches[0]
+
+    return package_path
 
 
 @pytest.mark.skipif(not salt.utils.path.which("rpm"), reason="rpm is not installed")
