@@ -62,11 +62,24 @@ def package(artifact_version, pkg_arch, pkg_release):
     return package_path
 
 
+@pytest.fixture
+def package_version(package, pkg_release):
+    """Extract the actual version from the package filename"""
+    import re
+    # Extract version from filename like cloudian-salt-3006.16+25.gf0a1d25ca2-1.x86_64.rpm
+    match = re.search(r"cloudian-salt-(.+)-\d+\.[^.]+\.rpm$", package.name)
+    if match:
+        return match.group(1)
+    # Fallback to artifact_version if we can't parse
+    return None
+
+
 @pytest.mark.skipif(not salt.utils.path.which("rpm"), reason="rpm is not installed")
 def test_provides(
     install_salt,
     package,
     artifact_version,
+    package_version,
     provides_arch,
     rpm_version,
     required_version,
@@ -86,13 +99,15 @@ def test_provides(
         pytest.skip(f"Test requires rpm version {required_version}")
 
     assert package.exists()
+    # Use package_version if available, otherwise fall back to artifact_version
+    version_to_use = package_version if package_version else artifact_version
     valid_provides = [
-        f"config: config(salt) = {artifact_version}-{pkg_release}",
-        f"manual: salt = {artifact_version}",
-        f"manual: salt = {artifact_version}-{pkg_release}",
-        f"manual: salt({provides_arch}) = {artifact_version}-{pkg_release}",
-        f"manual: cloudian-salt = {artifact_version}-{pkg_release}",
-        f"manual: cloudian-salt({provides_arch}) = {artifact_version}-{pkg_release}",
+        f"config: config(salt) = {version_to_use}-{pkg_release}",
+        f"manual: salt = {version_to_use}",
+        f"manual: salt = {version_to_use}-{pkg_release}",
+        f"manual: salt({provides_arch}) = {version_to_use}-{pkg_release}",
+        f"manual: cloudian-salt = {version_to_use}-{pkg_release}",
+        f"manual: cloudian-salt({provides_arch}) = {version_to_use}-{pkg_release}",
     ]
     proc = subprocess.run(
         ["rpm", "-q", "-v", "-provides", package], capture_output=True, check=True
@@ -107,7 +122,7 @@ def test_provides(
 
 @pytest.mark.skipif(not salt.utils.path.which("rpm"), reason="rpm is not installed")
 def test_requires(
-    install_salt, package, artifact_version, rpm_version, required_version, pkg_release
+    install_salt, package, artifact_version, package_version, rpm_version, required_version, pkg_release
 ):
     if install_salt.distro_id not in (
         "almalinux",
@@ -122,6 +137,8 @@ def test_requires(
     if rpm_version < required_version:
         pytest.skip(f"Test requires rpm version {required_version}")
     assert package.exists()
+    # Use package_version if available, otherwise fall back to artifact_version
+    version_to_use = package_version if package_version else artifact_version
     valid_requires = [
         "manual: /bin/sh",
         "pre,interp: /bin/sh",
@@ -130,7 +147,7 @@ def test_requires(
         "manual: /usr/sbin/groupadd",
         "manual: /usr/sbin/useradd",
         "manual: /usr/sbin/usermod",
-        f"config: config(cloudian-salt) = {artifact_version}-{pkg_release}",
+        f"config: config(cloudian-salt) = {version_to_use}-{pkg_release}",
         "manual: dmidecode",
         "manual: openssl",
         "manual: pciutils",
