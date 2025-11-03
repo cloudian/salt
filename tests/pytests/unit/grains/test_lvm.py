@@ -7,6 +7,9 @@ import pytest
 import salt.grains.lvm as lvm
 from tests.support.mock import MagicMock, patch
 
+# LVM grain has been disabled
+pytestmark = pytest.mark.skip(reason="LVM grain has been disabled")
+
 
 @pytest.fixture
 def configure_loader_modules():
