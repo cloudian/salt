@@ -1,3 +1,4 @@
+import re
 import subprocess
 
 import packaging
@@ -65,7 +66,6 @@ def package(artifact_version, pkg_arch, pkg_release):
 @pytest.fixture
 def package_version(package, pkg_release):
     """Extract the actual version from the package filename"""
-    import re
     # Extract version from filename like cloudian-salt-3006.16+25.gf0a1d25ca2-1.x86_64.rpm
     match = re.search(r"cloudian-salt-(.+)-\d+\.[^.]+\.rpm$", package.name)
     if match:
@@ -102,7 +102,7 @@ def test_provides(
     # Use package_version if available, otherwise fall back to artifact_version
     version_to_use = package_version if package_version else artifact_version
     valid_provides = [
-        f"config: config(salt) = {version_to_use}-{pkg_release}",
+        f"config: config(cloudian-salt) = {version_to_use}-{pkg_release}",
         f"manual: salt = {version_to_use}",
         f"manual: salt = {version_to_use}-{pkg_release}",
         f"manual: salt({provides_arch}) = {version_to_use}-{pkg_release}",
