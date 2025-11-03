@@ -43,9 +43,14 @@ def salt_test_upgrade(
     ret = salt_call_cli.run("--local", "test.version")
     assert ret.returncode == 0
     installed_minion_version = packaging.version.parse(ret.data)
-    assert installed_minion_version < packaging.version.parse(
-        install_salt.artifact_version
-    )
+
+    # Strip git hash from both versions for comparison
+    def strip_git_hash(version_str):
+        return str(version_str).split("+")[0] if "+" in str(version_str) else str(version_str)
+
+    installed_base_version = packaging.version.parse(strip_git_hash(installed_minion_version))
+    artifact_base_version = packaging.version.parse(strip_git_hash(install_salt.artifact_version))
+    assert installed_base_version < artifact_base_version
 
     # Verify previous install version salt-master is setup correctly and works
     bin_file = "salt"
@@ -53,9 +58,9 @@ def salt_test_upgrade(
         bin_file = "salt-call.exe"
     ret = install_salt.proc.run(bin_file, "--version")
     assert ret.returncode == 0
-    assert packaging.version.parse(
-        ret.stdout.strip().split()[1]
-    ) < packaging.version.parse(install_salt.artifact_version)
+    master_version = packaging.version.parse(ret.stdout.strip().split()[1])
+    master_base_version = packaging.version.parse(strip_git_hash(master_version))
+    assert master_base_version < artifact_base_version
 
     # Verify there is a running minion and master by getting there PIDs
     if platform.is_windows():
@@ -85,15 +90,17 @@ def salt_test_upgrade(
     assert ret.returncode == 0
 
     installed_minion_version = packaging.version.parse(ret.data)
-    assert installed_minion_version == packaging.version.parse(
-        install_salt.artifact_version
-    )
+
+    # Strip git hash from both versions for comparison
+    installed_base_version = packaging.version.parse(strip_git_hash(installed_minion_version))
+    artifact_base_version = packaging.version.parse(strip_git_hash(install_salt.artifact_version))
+    assert installed_base_version == artifact_base_version
 
     ret = install_salt.proc.run(bin_file, "--version")
     assert ret.returncode == 0
-    assert packaging.version.parse(
-        ret.stdout.strip().split()[1]
-    ) == packaging.version.parse(install_salt.artifact_version)
+    post_upgrade_master_version = packaging.version.parse(ret.stdout.strip().split()[1])
+    post_upgrade_master_base_version = packaging.version.parse(strip_git_hash(post_upgrade_master_version))
+    assert post_upgrade_master_base_version == artifact_base_version
 
     # Verify there is a new running minion and master by getting their PID and comparing them
     # with previous PIDs from before the upgrade

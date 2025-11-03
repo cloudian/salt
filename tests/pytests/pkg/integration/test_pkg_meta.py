@@ -122,7 +122,13 @@ def test_provides(
 
 @pytest.mark.skipif(not salt.utils.path.which("rpm"), reason="rpm is not installed")
 def test_requires(
-    install_salt, package, artifact_version, package_version, rpm_version, required_version, pkg_release
+    install_salt,
+    package,
+    artifact_version,
+    package_version,
+    rpm_version,
+    required_version,
+    pkg_release
 ):
     if install_salt.distro_id not in (
         "almalinux",

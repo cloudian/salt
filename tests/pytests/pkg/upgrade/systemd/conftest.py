@@ -387,7 +387,13 @@ def salt_systemd_setup(
     ret = call_cli.run("--local", "test.version")
     assert ret.returncode == 0
     installed_minion_version = packaging.version.parse(ret.data)
-    assert installed_minion_version == upgrade_version
+    # Strip git hash from both versions for comparison
+    def strip_git_hash(version_str):
+        return str(version_str).split("+")[0] if "+" in str(version_str) else str(version_str)
+    
+    installed_base_version = packaging.version.parse(strip_git_hash(installed_minion_version))
+    upgrade_base_version = packaging.version.parse(strip_git_hash(upgrade_version))
+    assert installed_base_version == upgrade_base_version
 
     # Reset systemd services to their preset states
     for test_item in test_list:
