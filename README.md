@@ -5,11 +5,27 @@ to the base Salt repository.
 
 ## Changes
 
-* Change RPM package name to cloudian-salt
-    1. Results in packages being name cloudian-salt-master and cloudian-salt-minion
-* Change the base Release number from 0 to 1
+### Product
+
+* Change RPM package name to cloudian-salt.
+    1. Results in packages being named cloudian-salt-master and cloudian-salt-minion.
+* Change the base release number from 0 to 1.
     1. This is to indicate a repackage of the original salt repo.
-* Disasble LVM and MDADM grain
+* Disable LVM and MDADM grain.
+
+### CI
+
+* Allow CI to run against the cloudian-main branch.
+* Change relenv version 0.20.6 -> 0.21.2.
+* Update python to version 3.10.18 -> 3.10.19.
+* Disable Windows, MacOS, Debian build and test jobs.
+* Change main artefact name from salt-*.rpm.zip to cloudian-salt-*.rpm.zip
+
+### Test
+
+* Disabled the LVM test.
+* Update test to use new cloudian-salt name scheme
+* Fix rpm install test to work on build with git commit in name
 
 ## Key commits
 
