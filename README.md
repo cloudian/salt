@@ -1,32 +1,57 @@
 # Cloudian Specific Information
 
-This is a document that acts as a information guide and single source of truth for all the changes and modification
+This is a document that acts as an information guide and single source of truth for all the changes and modifications
 to the base Salt repository.
 
-## Changes
+## Handling Versioning
 
-### Product
+To allow for multiple releases of cloudian-salt during a single release of salt it was determined that we will be updating the Release field of the RPM spec file.
 
-* Change RPM package name to cloudian-salt.
-    1. Results in packages being named cloudian-salt-master and cloudian-salt-minion.
-* Change the base release number from 0 to 1.
-    1. This is to indicate a repackage of the original salt repo.
-* Disable LVM and MDADM grain.
+### Working example
 
-### CI
+As of writing this document SaltStack has released Salt 3006.16-0.
+Cloudian has made changes to the product and released it's own version of salt, cloudian-salt-3006.16-1.
+For any future releases of cloudian-salt, that have not updated core salt, we will increment the Release field by 1.
+i.e cloudian-salt-3006.16-2.
 
-* Allow CI to run against the cloudian-main branch.
-* Change relenv version 0.20.6 -> 0.21.2.
-* Update python to version 3.10.18 -> 3.10.19.
-* Disable Windows, MacOS, Debian build and test jobs.
-* Change main artefact name from salt-*.rpm.zip to cloudian-salt-*.rpm.zip
+#### Changes required
 
-### Test
+Updated:
 
-* Disabled the LVM test.
-* Update test to use new cloudian-salt name scheme
-* Fix rpm install test to work on build with git commit in name
+`salt/pkg/rpm/salt.spec`
+In this spec file increment the Release field by one see the following diff.
+
+```bash
+❯ git diff cloudian-main:pkg/rpm/salt.spec pkg/rpm/salt.spec
+diff --git a/pkg/rpm/salt.spec b/pkg/rpm/salt.spec
+index 85ea0f7654..ffc3bbc65f 100644
+--- a/pkg/rpm/salt.spec
++++ b/pkg/rpm/salt.spec
+
+ Version: 3006.16
+-Release: 0
++Release: 1
+ Summary: A parallel remote execution system
+ Group:   System Environment/Daemons
+ License: ASL 2.0
+```
+
+`tests/pytests/pkg/integration/test_pkg_meta.py`
+In this test file update the `pkg_release()` function to the new release
+
+```bash
+diff --git a/tests/pytests/pkg/integration/test_pkg_meta.py b/tests/pytests/pkg/integration/test_pkg_meta.py
+index 078b07f651..7829e55340 100644
+--- a/tests/pytests/pkg/integration/test_pkg_meta.py
++++ b/tests/pytests/pkg/integration/test_pkg_meta.py
+ 
++@pytest.fixture
++def pkg_release():
++    return "1"
+```
 
 ## Key commits
+
+The following is a list of key commits that have been applied that modify the core functionality of the Salt product.
 
 1. Disable grains f5d45b648d6361bc28c002184108122e7908ec28
