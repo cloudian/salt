@@ -44,7 +44,7 @@ diff --git a/tests/pytests/pkg/integration/test_pkg_meta.py b/tests/pytests/pkg/
 index 078b07f651..7829e55340 100644
 --- a/tests/pytests/pkg/integration/test_pkg_meta.py
 +++ b/tests/pytests/pkg/integration/test_pkg_meta.py
- 
+
 +@pytest.fixture
 +def pkg_release():
 +    return "1"
