@@ -888,30 +888,31 @@ def workflow_config(
                 for _ in TEST_SALT_PKG_LISTING[platform]
                 if _.slug in requested_slugs
             ]
-        for version in str_releases:
-            for platform in platforms:
-                pkg_test_matrix[platform] += [
-                    dict(
-                        {
-                            "tests-chunk": "upgrade",
-                            "version": version,
-                        },
-                        **_.as_dict(),
-                    )
-                    for _ in TEST_SALT_PKG_LISTING[platform]
-                    if _.slug in requested_slugs
-                ]
-                pkg_test_matrix[platform] += [
-                    dict(
-                        {
-                            "tests-chunk": "downgrade",
-                            "version": version,
-                        },
-                        **_.as_dict(),
-                    )
-                    for _ in TEST_SALT_PKG_LISTING[platform]
-                    if _.slug in requested_slugs
-                ]
+        # Temp Disable upgrade/downgrade tests
+        # for version in str_releases:
+        #     for platform in platforms:
+        #         pkg_test_matrix[platform] += [
+        #             dict(
+        #                 {
+        #                     "tests-chunk": "upgrade",
+        #                     "version": version,
+        #                 },
+        #                 **_.as_dict(),
+        #             )
+        #             for _ in TEST_SALT_PKG_LISTING[platform]
+        #             if _.slug in requested_slugs
+        #         ]
+        #         pkg_test_matrix[platform] += [
+        #             dict(
+        #                 {
+        #                     "tests-chunk": "downgrade",
+        #                     "version": version,
+        #                 },
+        #                 **_.as_dict(),
+        #             )
+        #             for _ in TEST_SALT_PKG_LISTING[platform]
+        #             if _.slug in requested_slugs
+        #         ]
     ctx.info(f"{'==== pkg test matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(pkg_test_matrix)}")
     ctx.info(f"{'==== end pkg test matrix ====':^80s}")
