@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   label-and-assign:
+    if: false
     permissions:
       actions: read  # for dawidd6/action-download-artifact to query and download artifacts
       contents: read  # for actions/checkout to fetch code
