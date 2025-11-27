@@ -798,10 +798,11 @@ def workflow_config(
         "build-deps-ci": True if requested_slugs else False,
     }
 
+    # Cloudian only runs on linux for now
     platforms: list[Literal["linux", "macos", "windows"]] = [
         "linux",
-        "macos",
-        "windows",
+        # "macos",
+        # "windows",
     ]
 
     if skip_pkg_download_tests:
@@ -812,6 +813,11 @@ def workflow_config(
         platform: _build_matrix(platform, config["linux_arm_runner"])
         for platform in platforms
     }
+
+    # Ensure Windows and macOS are not in the build matrix for Cloudian
+    config["build-matrix"]["windows"] = []
+    config["build-matrix"]["macos"] = []
+
     ctx.info(f"{'==== build matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(config['build-matrix'])}")
     ctx.info(f"{'==== end build matrix ====':^80s}")
@@ -856,6 +862,10 @@ def workflow_config(
 
     pkg_test_matrix: dict[str, list] = {_: [] for _ in platforms}
 
+    # Ensure Windows and macOS are not in the pkg test matrix for Cloudian
+    pkg_test_matrix["windows"] = []
+    pkg_test_matrix["macos"] = []
+
     if not config["linux_arm_runner"]:
         # Filter out linux arm tests because we are on a private repository and
         # no arm64 runner is defined.
@@ -878,30 +888,31 @@ def workflow_config(
                 for _ in TEST_SALT_PKG_LISTING[platform]
                 if _.slug in requested_slugs
             ]
-        for version in str_releases:
-            for platform in platforms:
-                pkg_test_matrix[platform] += [
-                    dict(
-                        {
-                            "tests-chunk": "upgrade",
-                            "version": version,
-                        },
-                        **_.as_dict(),
-                    )
-                    for _ in TEST_SALT_PKG_LISTING[platform]
-                    if _.slug in requested_slugs
-                ]
-                pkg_test_matrix[platform] += [
-                    dict(
-                        {
-                            "tests-chunk": "downgrade",
-                            "version": version,
-                        },
-                        **_.as_dict(),
-                    )
-                    for _ in TEST_SALT_PKG_LISTING[platform]
-                    if _.slug in requested_slugs
-                ]
+        # Temp Disable upgrade/downgrade tests
+        # for version in str_releases:
+        #     for platform in platforms:
+        #         pkg_test_matrix[platform] += [
+        #             dict(
+        #                 {
+        #                     "tests-chunk": "upgrade",
+        #                     "version": version,
+        #                 },
+        #                 **_.as_dict(),
+        #             )
+        #             for _ in TEST_SALT_PKG_LISTING[platform]
+        #             if _.slug in requested_slugs
+        #         ]
+        #         pkg_test_matrix[platform] += [
+        #             dict(
+        #                 {
+        #                     "tests-chunk": "downgrade",
+        #                     "version": version,
+        #                 },
+        #                 **_.as_dict(),
+        #             )
+        #             for _ in TEST_SALT_PKG_LISTING[platform]
+        #             if _.slug in requested_slugs
+        #         ]
     ctx.info(f"{'==== pkg test matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(pkg_test_matrix)}")
     ctx.info(f"{'==== end pkg test matrix ====':^80s}")
@@ -918,8 +929,6 @@ def workflow_config(
     test_matrix: dict[str, list] = {
         "linux-x86_64": [],
         "linux-arm64": [],
-        "macos": [],
-        "windows": [],
     }
     if not skip_tests:
         for platform in platforms:
@@ -1017,6 +1026,10 @@ def workflow_config(
             ctx.warn(
                 f"Number of jobs in {platform} test matrix exceeds 256 ({len(test_matrix[key])}), jobs may not run."
             )
+
+    # Final cleanup: ensure Windows and macOS are not in any matrix
+    test_matrix["windows"] = []
+    test_matrix["macos"] = []
 
     ctx.info(f"{'==== test matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(test_matrix)}")

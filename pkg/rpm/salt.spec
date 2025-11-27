@@ -39,9 +39,9 @@
 
 %define fish_dir %{_datadir}/fish/vendor_functions.d
 
-Name:    salt
+Name:    cloudian-salt
 Version: 3006.16
-Release: 0
+Release: 1
 Summary: A parallel remote execution system
 Group:   System Environment/Daemons
 License: ASL 2.0

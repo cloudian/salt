@@ -66,7 +66,7 @@ jobs:
 
   build-deb-packages:
     name: DEB
-    if: ${{ toJSON(fromJSON(inputs.matrix)['linux']) != '[]' }}
+    if: ${{ false }}
     runs-on:
       - ${{ matrix.arch == 'x86_64' && 'ubuntu-24.04' || inputs.linux_arm_runner }}
     strategy:
@@ -257,9 +257,9 @@ jobs:
         id: set-artifact-name
         run: |
           if [ "${{ inputs.source }}" != "src" ]; then
-            echo "artifact-name=salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=cloudian-salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm" >> "$GITHUB_OUTPUT"
           else
-            echo "artifact-name=salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm-from-src" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=cloudian-salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm-from-src" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload RPMs
