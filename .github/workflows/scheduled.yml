@@ -233,7 +233,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tools ci get-releases
+          tools ci get-releases cloudian/salt
 
       - name: Get Latest Salt Releases for Testing
         id: get-testing-releases
