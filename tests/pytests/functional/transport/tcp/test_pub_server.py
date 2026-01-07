@@ -54,4 +54,7 @@ async def test_pub_channel(master_opts, minion_opts, io_loop):
         client.close()
         server.close()
         proc.terminate()
-        proc.join()
+        proc.join(timeout=5)
+        if proc.is_alive():
+            proc.kill()
+            proc.join(timeout=1)
