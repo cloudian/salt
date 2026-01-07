@@ -599,6 +599,7 @@ jobs:
           cache-prefix: ${{ needs.prepare-workflow.outputs.cache-seed }}
 
       - name: Setup GnuPG
+        if: false
         run: |
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /run/gpg
           GNUPGHOME="$(mktemp -d -p /run/gpg)"

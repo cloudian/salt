@@ -263,7 +263,7 @@ class Version(packaging.version.Version):
 
 
 def get_salt_releases(
-    ctx: Context, repository: str = "saltstack/salt"
+    ctx: Context, repository: str = "cloudian/salt"
 ) -> list[Version]:
     """
     Return a list of salt versions

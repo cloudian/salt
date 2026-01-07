@@ -170,11 +170,11 @@ def _build_matrix(os_kind, linux_arm_runner):
     name="get-releases",
     arguments={
         "repository": {
-            "help": "The repository to query for releases, e.g. saltstack/salt",
+            "help": "The repository to query for releases, e.g. cloudian/salt",
         },
     },
 )
-def get_releases(ctx: Context, repository: str = "saltstack/salt"):
+def get_releases(ctx: Context, repository: str = "cloudian/salt"):
     """
     Generate the latest salt release.
     """

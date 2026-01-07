@@ -216,7 +216,7 @@ jobs:
           salt-version: "${{ inputs.salt-version }}"
 
       - name: Setup GnuPG
-        if: ${{ inputs.sign-rpm-packages }}
+        if: false
         env:
           SIGNING_GPG_KEY: ${{ secrets.SIGNING_GPG_KEY }}
           SIGNING_PASSPHRASE: ${{ secrets.SIGNING_PASSPHRASE }}

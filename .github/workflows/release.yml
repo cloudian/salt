@@ -136,6 +136,7 @@ jobs:
           git config --global commit.gpgsign true
 
       - name: Setup GnuPG
+        if: false
         env:
           SIGNING_GPG_KEY: ${{ secrets.SIGNING_GPG_KEY }}
           SIGNING_PASSPHRASE: ${{ secrets.SIGNING_PASSPHRASE }}
@@ -203,6 +204,7 @@ jobs:
           cache-prefix: ${{ needs.prepare-workflow.outputs.cache-seed }}
 
       - name: Setup GnuPG
+        if: false
         run: |
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /run/gpg
           GNUPGHOME="$(mktemp -d -p /run/gpg)"
@@ -241,6 +243,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Publish Release v${{ needs.prepare-workflow.outputs.salt-version }}
+        if: false
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
