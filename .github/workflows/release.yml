@@ -89,7 +89,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tools ci get-releases cloudian/salt
+          tools ci get-releases --repository cloudian/salt
 
       - name: Set Cache Seed Output
         id: set-cache-seed
