@@ -174,7 +174,7 @@ def _build_matrix(os_kind, linux_arm_runner):
         },
     },
 )
-def get_releases(ctx: Context, repository: str = "cloudian/salt"):
+def get_releases(ctx: Context, repository: str = "saltstack/salt"):
     """
     Generate the latest salt release.
     """
