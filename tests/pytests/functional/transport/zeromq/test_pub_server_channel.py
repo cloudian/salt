@@ -254,6 +254,9 @@ def test_pub_channel(master_opts):
     )
     process.start()
 
+    # Wait for daemon to initialize
+    time.sleep(3)
+
     server.publish({"meh": "bah"})
 
     start = time.monotonic()
@@ -265,7 +268,10 @@ def test_pub_channel(master_opts):
     finally:
         server.close()
         process.terminate()
-        process.join()
+        process.join(timeout=5)
+        if process.is_alive():
+            process.kill()
+            process.join(timeout=1)
 
 
 def test_pub_channel_filtering(master_opts):
@@ -285,6 +291,9 @@ def test_pub_channel_filtering(master_opts):
     )
     process.start()
 
+    # Wait for daemon to initialize
+    time.sleep(3)
+
     server.publish({"meh": "bah"})
 
     start = time.monotonic()
@@ -296,7 +305,10 @@ def test_pub_channel_filtering(master_opts):
     finally:
         server.close()
         process.terminate()
-        process.join()
+        process.join(timeout=5)
+        if process.is_alive():
+            process.kill()
+            process.join(timeout=1)
 
 
 def test_pub_channel_filtering_topic(master_opts):
@@ -315,6 +327,9 @@ def test_pub_channel_filtering_topic(master_opts):
     )
     process.start()
 
+    # Wait for daemon to initialize
+    time.sleep(3)
+
     server.publish({"meh": "bah"})
 
     start = time.monotonic()
@@ -326,4 +341,7 @@ def test_pub_channel_filtering_topic(master_opts):
     finally:
         server.close()
         process.terminate()
-        process.join()
+        process.join(timeout=5)
+        if process.is_alive():
+            process.kill()
+            process.join(timeout=1)
