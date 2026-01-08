@@ -1613,7 +1613,7 @@ class VirtualEnv:
     @pip_requirement.default
     def _default_pip_requirement(self):
         if os.environ.get("ONEDIR_TESTRUN", "0") == "1":
-            return "pip>=25.2"
+            return "pip>=22.3.1,<23.0"
         return "pip>=20.2.4,<21.2"
 
     @setuptools_requirement.default
