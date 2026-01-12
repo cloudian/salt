@@ -33,6 +33,7 @@ jobs:
          # - linkcheck
          # - spellcheck
           - html
+          - man
 
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +96,6 @@ jobs:
           tools docs ${{ matrix.docs-output }}
 
       - name: Upload Built Documentation Artifact(${{ matrix.docs-output }})
-        if: ${{ steps.build-docs.outputs.has-artifacts == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-docs.outputs.artifact-name }}

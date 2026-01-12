@@ -89,7 +89,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          tools ci get-releases
+          tools ci get-releases --repository cloudian/salt
 
       - name: Set Cache Seed Output
         id: set-cache-seed
@@ -136,6 +136,7 @@ jobs:
           git config --global commit.gpgsign true
 
       - name: Setup GnuPG
+        if: false
         env:
           SIGNING_GPG_KEY: ${{ secrets.SIGNING_GPG_KEY }}
           SIGNING_PASSPHRASE: ${{ secrets.SIGNING_PASSPHRASE }}
@@ -181,7 +182,7 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPi
-    if: ${{ always() && ! failure() && ! cancelled() && github.event.repository.fork != true }}
+    if: false
     needs:
       - prepare-workflow
       - release

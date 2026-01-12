@@ -66,7 +66,7 @@ jobs:
 
   build-deb-packages:
     name: DEB
-    if: ${{ false }}
+    if: ${{ toJSON(fromJSON(inputs.matrix)['linux']) != '[]' }}
     runs-on:
       - ${{ matrix.arch == 'x86_64' && 'ubuntu-24.04' || inputs.linux_arm_runner }}
     strategy:
@@ -75,7 +75,10 @@ jobs:
         include: ${{ fromJSON(inputs.matrix)['linux'] }}
 
     container:
-      image: ghcr.io/saltstack/salt-ci-containers/packaging:debian-12
+      image: ghcr.io/saltstack/salt-ci-containers/testing:debian-13
+
+    env:
+      RELENV_DATA: "${{ github.workspace }}/.relenv"
 
     steps:
       # Checkout here so we can easily use custom actions
@@ -87,6 +90,15 @@ jobs:
         with:
           path:
             pkgs/checkout/
+
+      - name: Install build dependencies
+        run: |
+          # Installing python3.13-venv for Python 3.13 support
+          apt-get install -y python3.13-venv
+          # Installing devscripts for source package builds (provides debuild)
+          apt-get install -y devscripts
+          # Installing patchelf for relenv ELF binary patching
+          apt-get install -y patchelf
 
       - name: Download Onedir Tarball as an Artifact
         if:  inputs.source == 'onedir'
@@ -100,7 +112,7 @@ jobs:
         run: |
           mkdir -p ~/.local/relenv
           python3 -m venv venv
-          venv/bin/python3 -m pip install relenv ppbt
+          venv/bin/python3 -m pip install ppbt relenv==${{ inputs.relenv-version }}
           venv/bin/python3 -c 'from relenv import common; common.get_toolchain()'
 
       - name: Download Release Patch
@@ -109,6 +121,12 @@ jobs:
         with:
           name: salt-${{ inputs.salt-version }}.patch
           path: pkgs/checkout/
+
+      - name: Download MAN Pages
+        uses: actions/download-artifact@v4
+        with:
+          name: man-pages-${{ inputs.salt-version }}
+          path: pkgs/checkout/doc/man/
 
       - name: Setup Python Tools Scripts
         uses: ./.github/actions/setup-python-tools-scripts
@@ -178,10 +196,17 @@ jobs:
         include: ${{ fromJSON(inputs.matrix)['linux'] }}
 
     container:
-      image: ghcr.io/saltstack/salt-ci-containers/packaging:rockylinux-9
+      image: ghcr.io/saltstack/salt-ci-containers/testing:fedora-42
+
+    env:
+      RELENV_DATA: "${{ github.workspace }}/.relenv"
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install rpmsign
+        run: |
+          dnf install -y rpmsign
 
       - name: Download Onedir Tarball as an Artifact
         if:  inputs.source == 'onedir'
@@ -195,7 +220,7 @@ jobs:
         run: |
           mkdir -p ~/.local/relenv
           python3 -m venv venv
-          venv/bin/python3 -m pip install relenv ppbt
+          venv/bin/python3 -m pip install ppbt relenv==${{ inputs.relenv-version }}
           venv/bin/python3 -c 'from relenv import common; common.get_toolchain()'
 
       - name: Download Release Patch
@@ -203,6 +228,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: salt-${{ inputs.salt-version }}.patch
+
+      - name: Download MAN Pages
+        uses: actions/download-artifact@v4
+        with:
+          name: man-pages-${{ inputs.salt-version }}
+          path: doc/man/
 
       - name: Setup Python Tools Scripts
         uses: ./.github/actions/setup-python-tools-scripts
@@ -257,9 +288,9 @@ jobs:
         id: set-artifact-name
         run: |
           if [ "${{ inputs.source }}" != "src" ]; then
-            echo "artifact-name=cloudian-salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm" >> "$GITHUB_OUTPUT"
           else
-            echo "artifact-name=cloudian-salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm-from-src" >> "$GITHUB_OUTPUT"
+            echo "artifact-name=salt-${{ inputs.salt-version }}-${{ matrix.arch }}-rpm-from-src" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload RPMs
@@ -281,7 +312,7 @@ jobs:
     env:
       PIP_INDEX_URL: https://pypi.org/simple
     runs-on:
-      - ${{ matrix.arch == 'arm64' && 'macos-14' || 'macos-13' }}
+      - ${{ matrix.arch == 'arm64' && 'macos-14' || 'macos-15-intel' }}
 
     steps:
       - name: Check Package Signing Enabled
@@ -329,6 +360,12 @@ jobs:
         with:
           name: salt-${{ inputs.salt-version }}-onedir-macos-${{ matrix.arch }}.tar.xz
           path: artifacts/
+
+      - name: Download MAN Pages
+        uses: actions/download-artifact@v4
+        with:
+          name: man-pages-${{ inputs.salt-version }}
+          path: doc/man/
 
       - name: Setup Keychain
         if: ${{ steps.check-pkg-sign.outputs.sign-pkgs == 'true' }}
@@ -481,6 +518,12 @@ jobs:
           name: salt-${{ inputs.salt-version }}-onedir-windows-${{ matrix.arch }}.zip
           path: artifacts/
 
+      - name: Download MAN Pages
+        uses: actions/download-artifact@v4
+        with:
+          name: man-pages-${{ inputs.salt-version }}
+          path: doc/man/
+
       - name: Setup Certificate
         if: ${{ steps.check-pkg-sign.outputs.sign-pkgs == 'true' }}
         shell: bash
@@ -489,7 +532,7 @@ jobs:
 
       - name: Code signing with Software Trust Manager
         if: ${{ steps.check-pkg-sign.outputs.sign-pkgs == 'true' }}
-        uses: digicert/ssm-code-signing@v0.0.2
+        uses: digicert/ssm-code-signing@v1.1.1
 
       - name: Build Windows Packages
         run: |
