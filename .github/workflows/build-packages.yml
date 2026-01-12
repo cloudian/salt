@@ -231,6 +231,7 @@ jobs:
           name: salt-${{ inputs.salt-version }}.patch
 
       - name: Download MAN Pages
+        if: false
         uses: actions/download-artifact@v4
         with:
           name: man-pages-${{ inputs.salt-version }}
@@ -363,6 +364,7 @@ jobs:
           path: artifacts/
 
       - name: Download MAN Pages
+        if: false
         uses: actions/download-artifact@v4
         with:
           name: man-pages-${{ inputs.salt-version }}
@@ -520,6 +522,7 @@ jobs:
           path: artifacts/
 
       - name: Download MAN Pages
+        if: false
         uses: actions/download-artifact@v4
         with:
           name: man-pages-${{ inputs.salt-version }}
