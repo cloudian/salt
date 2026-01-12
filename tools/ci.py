@@ -231,7 +231,7 @@ def _get_pr_test_labels_from_event_payload(
     """
     if "pull_request" not in gh_event:
         return []
-    return _filter_test_labels(gh_event["pull_request"]["labels"])
+    return [_[0] for _ in _filter_test_labels(gh_event["pull_request"]["labels"])]
 
 
 def _filter_test_labels(labels: list[dict[str, Any]]) -> list[tuple[str, str]]:
@@ -544,21 +544,21 @@ def _define_testrun(ctx, changed_files, labels, full):
         )
     if full:
         ctx.info("Full test run chosen")
-        testrun = TestRun(type="full", skip_code_coverage=True)
+        testrun = TestRun(type="full", skip_code_coverage=False)
     elif changed_pkg_requirements_files or changed_test_requirements_files:
         ctx.info(
             "Full test run chosen because there was a change made "
             "to the requirements files."
         )
-        testrun = TestRun(type="full", skip_code_coverage=True)
+        testrun = TestRun(type="full", skip_code_coverage=False)
     elif "test:full" in labels:
         ctx.info("Full test run chosen because the label `test:full` is set.\n")
-        testrun = TestRun(type="full", skip_code_coverage=True)
+        testrun = TestRun(type="full", skip_code_coverage=False)
     else:
         testrun_changed_files_path = tools.utils.REPO_ROOT / "testrun-changed-files.txt"
         testrun = TestRun(
             type="changed",
-            skip_code_coverage=True,
+            skip_code_coverage=False,
             from_filenames=str(
                 testrun_changed_files_path.relative_to(tools.utils.REPO_ROOT)
             ),
@@ -730,6 +730,7 @@ def workflow_config(
         if "pull_request" in gh_event:
             pr = gh_event["pull_request"]["number"]
             labels = _get_pr_test_labels_from_event_payload(gh_event)
+            ctx.info(f"labels are {labels!r}")
         else:
             ctx.warn("The 'pull_request' key was not found on the event payload.")
 
@@ -744,7 +745,7 @@ def workflow_config(
             # Public repositories can use github's arm64 runners.
             config["linux_arm_runner"] = "ubuntu-24.04-arm"
 
-    if event_name != "pull_request" or "test:full" in [_[0] for _ in labels]:
+    if event_name != "pull_request" or "test:full" in labels:
         full = True
         slugs = os.environ.get("FULL_TESTRUN_SLUGS", "")
         if not slugs:
@@ -770,6 +771,10 @@ def workflow_config(
 
     config["skip_code_coverage"] = True
     if "test:coverage" in labels:
+        ctx.info("Code coverage enabled.")
+        config["skip_code_coverage"] = False
+    elif event_name != "pull_request":
+        ctx.info("Code coverage enabled. (not a pr).")
         config["skip_code_coverage"] = False
     else:
         ctx.info("Skipping code coverage.")
@@ -798,7 +803,7 @@ def workflow_config(
         "build-deps-ci": True if requested_slugs else False,
     }
 
-    # Cloudian only runs on linux for now
+    # Cloudian disable non Linux builds
     platforms: list[Literal["linux", "macos", "windows"]] = [
         "linux",
         # "macos",
@@ -813,11 +818,6 @@ def workflow_config(
         platform: _build_matrix(platform, config["linux_arm_runner"])
         for platform in platforms
     }
-
-    # Ensure Windows and macOS are not in the build matrix for Cloudian
-    config["build-matrix"]["windows"] = []
-    config["build-matrix"]["macos"] = []
-
     ctx.info(f"{'==== build matrix ====':^80s}")
     ctx.info(f"{pprint.pformat(config['build-matrix'])}")
     ctx.info(f"{'==== end build matrix ====':^80s}")
@@ -861,10 +861,6 @@ def workflow_config(
     ctx.info(f"str_releases {str_releases}")
 
     pkg_test_matrix: dict[str, list] = {_: [] for _ in platforms}
-
-    # Ensure Windows and macOS are not in the pkg test matrix for Cloudian
-    pkg_test_matrix["windows"] = []
-    pkg_test_matrix["macos"] = []
 
     if not config["linux_arm_runner"]:
         # Filter out linux arm tests because we are on a private repository and
@@ -926,9 +922,12 @@ def workflow_config(
         "unit": 4,
     }
 
+    # Cloudian disable non Linux tests
     test_matrix: dict[str, list] = {
         "linux-x86_64": [],
         "linux-arm64": [],
+        # "macos": [],
+        # "windows": [],
     }
     if not skip_tests:
         for platform in platforms:
