@@ -22,7 +22,7 @@ on:
 
 env:
   COLUMNS: 190
-  CACHE_SEED: SEED-0  # Bump the number to invalidate all caches
+  CACHE_SEED: SEED-1  # Bump the number to invalidate all caches
   RELENV_DATA: "${{ github.workspace }}/.relenv"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
   RAISE_DEPRECATIONS_RUNTIME_ERRORS: "1"
@@ -278,7 +278,9 @@ jobs:
     with:
       cache-seed: ${{ needs.prepare-workflow.outputs.cache-seed }}
       changed-files: ${{ needs.prepare-workflow.outputs.changed-files }}
-      pre-commit-version: "3.0.4"
+      pre-commit-version: "4.3.0"
+      ci-python-version: "3.11"
+      full: ${{ fromJSON(needs.prepare-workflow.outputs.config)['testrun']['type'] == 'full' }}
 
   lint:
     name: Lint
@@ -354,12 +356,19 @@ jobs:
 
       - name: Generate MAN Pages
         shell: bash
-        if: ${{ startsWith(github.event.ref, 'refs/tags') == false }}
         env:
           LATEST_RELEASE: "${{ needs.prepare-workflow.outputs.salt-version }}"
           SALT_ON_SALTSTACK: "1"
         run: |
           tools docs man
+
+      - name: Upload MAN Pages Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: man-pages-${{ needs.prepare-workflow.outputs.salt-version }}
+          path: doc/man/
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Update Changelog
         shell: bash
@@ -385,7 +394,7 @@ jobs:
         if: ${{ startsWith(github.event.ref, 'refs/tags') == false }}
         uses: ./.github/actions/setup-pre-commit
         with:
-          version: "3.0.4"
+          version: "4.3.0"
           cache-seed: ${{ needs.prepare-workflow.outputs.cache-seed }}
 
       - name: Commit Changes
@@ -419,7 +428,7 @@ jobs:
     if: ${{ !cancelled() && fromJSON(needs.prepare-workflow.outputs.config)['jobs']['build-docs'] }}
     needs:
       - prepare-workflow
-      - build-source-tarball
+      - prepare-release
     uses: ./.github/workflows/build-docs.yml
     with:
       cache-seed: ${{ needs.prepare-workflow.outputs.cache-seed }}
@@ -431,6 +440,7 @@ jobs:
     needs:
       - prepare-workflow
       - prepare-release
+      - build-docs
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -451,6 +461,20 @@ jobs:
         with:
           salt-version: "${{ needs.prepare-workflow.outputs.salt-version }}"
 
+      - name: Download Man Pages Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: salt-${{ needs.prepare-workflow.outputs.salt-version }}-docs-man.tar.xz
+
+      - name: Extract and Remove Man Pages Artifact
+        shell: bash
+        run: |
+          pwd
+          mkdir -p doc/man
+          tar -xvf salt-${{ needs.prepare-workflow.outputs.salt-version }}-docs-man.tar.xz -C doc/man
+          ls -la doc/man
+          rm salt-${{ needs.prepare-workflow.outputs.salt-version }}-docs-man.tar.xz
+
       - name: Build Source Tarball
         uses: ./.github/actions/build-source-tarball
         with:
@@ -461,6 +485,7 @@ jobs:
     if: ${{ !cancelled() && fromJSON(needs.prepare-workflow.outputs.config)['jobs']['build-salt-onedir'] }}
     needs:
       - prepare-workflow
+      - build-docs
       - build-source-tarball
     uses: ./.github/workflows/build-salt-onedir.yml
     with:
